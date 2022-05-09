@@ -1,0 +1,101 @@
+---
+title: "Trade War and Trump's approval rate"
+author: "Haokun Zhang"
+date: "5/8/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+#import modules
+library(dplyr)
+library(ggplot2)
+library(rdrobust)
+library(magrittr)
+library(haven)
+library(tidyverse)
+library(data.table)
+library(fixest)
+library(glue)
+library(data.table)
+library(caret)
+library(glmnet)
+library(gbm)
+library(ggmap)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(rsample)
+library(modelr)
+library(fastDummies)
+library(scales)
+library(here)
+library(knitr)
+library(kableExtra)
+library(stargazer)
+library(here)
+library(foreach)
+
+path <- here()
+```
+
+## R Markdown
+
+
+```{r data_descripton, echo = FALSE}
+#import data
+trump_vote = read.csv("data_to_use/approval_topline.csv")
+
+#filter the data to only voters
+voter_data = trump_vote %>%
+  filter(subgroup == "Voters")
+voter_data = voter_data %>%
+  select(subgroup, 
+         modeldate, 
+         approve_estimate, 
+         approve_hi, 
+         approve_lo, 
+         disapprove_estimate, 
+         disapprove_hi, 
+         disapprove_lo) 
+
+# create a dataframe of voter_data
+df_voter_data <- data.frame(modeldate = c(voter_data$modeldate), 
+                            approve_estimate = c(voter_data$approve_estimate))
+
+# describing modeldate in date class
+df_voter_data$modeldate <- as.Date(voter_data$modeldate, format = "%m/%d/%Y")
+
+# plot of distribution across time
+p <- ggplot(data = df_voter_data, aes(x=modeldate, y=approve_estimate)) + geom_point() + scale_x_date(date_labels = "%Y/%m")
+
+# show p
+plot(p)
+```
+
+```{r local linear RD point estimator with h=20 and uniform kernel, echo=FALSE}
+cutoff = as.numeric(as.Date("2018-04-02"))
+
+out1 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "uniform", p =1, h = 20, c= cutoff)
+summary(out1)
+
+```
+
+```{r local linear RD point estimator with h=20 and triangular kernel, echo=FALSE}
+out2 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, h = 20, c= cutoff)
+summary(out2)
+
+```
+
+```{r local quadratic RD with triangular kernel, h=20 and p=2, echo=FALSE}
+out3 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, h = 20, c= cutoff)
+summary(out3)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+`''
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
