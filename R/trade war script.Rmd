@@ -43,7 +43,7 @@ path <- here()
 
 ```{r data_descripton, echo = FALSE}
 #import data
-trump_vote = read.csv("data_to_use/approval_topline.csv")
+trump_vote = read.csv("C:/Users/Haokun Zhang/Desktop/github/trade_war_effects/data/approval_topline.csv")
 
 #filter the data to only voters
 voter_data = trump_vote %>%
@@ -89,6 +89,40 @@ summary(out2)
 ```{r local quadratic RD with triangular kernel, h=20 and p=2, echo=FALSE}
 out3 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, h = 20, c= cutoff)
 summary(out3)
+```
+```{r "optimal bandwidth selection using MSE-optimal bandwidth", echo=FALSE}
+bwd1 = rdbwselect(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff)
+summary(bwd1)
+```
+
+```{r "optimal bandwidth selection using two MSE-optimal", echo=FALSE}
+bwd2 = rdbwselect(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "msetwo" , c= cutoff)
+summary(bwd2)
+```
+
+```{r "local linear RD with MSE bandwidth", echo=FALSE}
+out4 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff)
+summary(out4)
+```
+
+```{r local linear RD with triangular kernel and exlcuded regularization term}
+out5 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", scaleregul = 0, p =1, bwselect = "mserd", c= cutoff)
+summary(out5)
+```
+
+```{r local linear RD with triangular kernel with all is TRUE}
+out6 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", all=TRUE, c= cutoff)
+summary(out6)
+```
+
+```{r "local linear RD with triangular kernel with CER-optimal bandwith choice", echo=FALSE}
+out7 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "cerrd", c= cutoff)
+summary(out7)
+```
+
+```{r "all bandwidth", echo=FALSE}
+bdw3 = rdbwselect(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, all = TRUE, c= cutoff)
+summary(bdw3)
 ```
 
 ## Including Plots
