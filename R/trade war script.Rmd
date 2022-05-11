@@ -36,6 +36,7 @@ library(here)
 library(foreach)
 library(rddensity)
 library(dplyr)
+library(modelsummary)
 
 path <- here()
 ```
@@ -117,7 +118,7 @@ summary(bwd2)
 
 
 ```{r "local linear RD with MSE bandwidth", echo=FALSE}
-out4 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff)
+out4 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE)
 summary(out4)
 ```
 
@@ -127,7 +128,7 @@ summary(out5)
 ```
 
 ```{r local linear RD with triangular kernel with all is TRUE}
-out6 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", all=TRUE, c= cutoff)
+out6 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", all=TRUE, c= cutoff)
 summary(out6)
 ```
 
@@ -166,6 +167,31 @@ summary(out8)
 
 ```
 
+```{r cutoff1 models table, echo=FALSE}
+tidy.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    term = row.names(model$coef),
+    estimate = model$coef[, 1],
+    std.error = model$se[, 1],
+    p.value = model$pv[, 1]
+  )
+  row.names(ret) <- NULL
+  ret
+}
+
+glance.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    Kernel = model$kernel,
+    Bandwidth = model$bwselect
+  )
+  ret
+}
+
+models <- list(out4, out5, out6)
+
+modelsummary(models, statistic = "std.error", stars=TRUE, title = "RD Estimates for Approval Rate after U.S. Tariffs")
+
+```
 
 
 ```{r rdplot, echo=FALSE}
@@ -208,7 +234,7 @@ summary(out4)
 out5 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", scaleregul = 0, p =1, bwselect = "mserd", c= cutoff, all = TRUE)
 summary(out5)
 
-out6 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", all=TRUE, c= cutoff)
+out6 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", all=TRUE, c= cutoff)
 summary(out6)
 
 out7 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "cerrd", c= cutoff)
@@ -227,6 +253,33 @@ c= as.integer(as.Date("2018-06-15"))
 
 out8 = rdrobust(y, x, c= c, covs = cov, kernel = "triangular", scaleregul = 1,p = 1, bwselect = "mserd")
 summary(out8)
+```
+
+```{r cutoff2 models table, echo=FALSE}
+
+tidy.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    term = row.names(model$coef),
+    estimate = model$coef[, 1],
+    std.error = model$se[, 1],
+    p.value = model$pv[, 1]
+  )
+  row.names(ret) <- NULL
+  ret
+}
+
+glance.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    Kernel = model$kernel,
+    Bandwidth = model$bwselect
+  )
+  ret
+}
+
+models <- list(out4, out5, out6)
+
+modelsummary(models, statistic = "std.error", stars=TRUE, title = "RD Estimates for Approval Rate after China Tariffs")
+
 ```
 
 ```{r cutoff2 rdplot, echo=FALSE}
