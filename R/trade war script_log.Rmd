@@ -154,14 +154,21 @@ voter_data$disapprove_hi, voter_data$disapprove_lo)
 df_voter_data = df_voter_data %>%
   mutate(approve_hi = Z[,1], approve_lo = Z[,2], disapprove_estimate = Z[,3], disapprove_hi = Z[,4], disapprove_lo = Z[,5])
 
-cov = cbind(df_voter_data$approve_hi, df_voter_data$approve_lo, df_voter_data$disapprove_estimate,
-df_voter_data$disapprove_hi, df_voter_data$disapprove_lo)
+# transform covariates to log form
+df_voter_data$log_approve_hi = log(df_voter_data$approve_hi)
+df_voter_data$log_approve_lo = log(df_voter_data$approve_lo)
+df_voter_data$log_disapprove_estimate = log(df_voter_data$disapprove_estimate)
+df_voter_data$log_disapprove_hi = log(df_voter_data$disapprove_hi)
+df_voter_data$log_disapprove_lo = log(df_voter_data$disapprove_lo)
+
+cov = cbind(df_voter_data$log_approve_hi, df_voter_data$log_approve_lo, df_voter_data$log_disapprove_estimate,
+df_voter_data$log_disapprove_hi, df_voter_data$log_disapprove_lo)
 
 y = (df_voter_data$log_approve_estimate)
 x = as.integer(df_voter_data$modeldate)
 c= as.integer(as.Date("2018-04-2"))
 
-out8 = rdrobust(y, x, c= c, covs = cov, kernel = "triangular", scaleregul = 1,p = 1, bwselect = "mserd")
+out8 = rdrobust(y, x, c= c, covs = cov, kernel = "triangular", scaleregul = 1,p = 2, bwselect = "mserd")
 summary(out8)
 
 ```
