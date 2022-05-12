@@ -1,6 +1,8 @@
-the treatment effect is not smooth and constant throughout the postperiod (multiple stages), time-varying treatment effect in RDiT (marked by controls) 
+the treatment effect is smooth and constant throughout the postperiod 
 no lag effect
 the model is correctly specified, controls observed all other potential confounders
+Absent the treatment itself, the expected potential outcomes would have remained a smooth function even passing cutoff point
+there are many potential time-varying confounders, which are assumed to change smoothly across the date of the policy change
 
 
 
