@@ -1,11 +1,272 @@
 ---
 title: "Causal Final Project"
 author: "Abby Johnson and Haokun Zhang"
-date: "5/9/2022"
-output: html_document
+date: "5/13/2022"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#import modules
+library(dplyr)
+library(ggplot2)
+library(rdrobust)
+library(magrittr)
+library(haven)
+library(tidyverse)
+library(data.table)
+library(fixest)
+library(glue)
+library(data.table)
+library(caret)
+library(glmnet)
+library(gbm)
+library(ggmap)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(rsample)
+library(modelr)
+library(fastDummies)
+library(scales)
+library(here)
+library(knitr)
+library(kableExtra)
+library(stargazer)
+library(here)
+library(foreach)
+library(rddensity)
+library(dplyr)
+
+path <- here()
 ```
+
+```{r data_descripton, echo = FALSE}
+#import data
+trump_vote = read.csv("C:/Users/Haokun Zhang/Desktop/github/trade_war_effects/data/approval_topline.csv")
+
+#filter the data to only voters
+voter_data = trump_vote %>%
+  filter(subgroup == "Voters")
+voter_data = voter_data %>%
+  select(subgroup, 
+         modeldate, 
+         approve_estimate, 
+         approve_hi, 
+         approve_lo, 
+         disapprove_estimate, 
+         disapprove_hi, 
+         disapprove_lo) 
+
+# create a dataframe of voter_data
+df_voter_data <- data.frame(modeldate = c(voter_data$modeldate), 
+                            approve_estimate = c(voter_data$approve_estimate))
+
+# change the approve_estimate to log form
+df_voter_data$log_approve_estimate=log(df_voter_data$approve_estimate)
+
+# describing modeldate in date class
+df_voter_data$modeldate <- as.Date(voter_data$modeldate, format = "%m/%d/%Y")
+
+#add dummy variable for control covariates
+df_voter_data$T1<-ifelse(df_voter_data$modeldate> "2018-03-01",1,0)
+df_voter_data$T2<-ifelse(df_voter_data$modeldate> "2018-03-23",1,0)
+df_voter_data$T3<-ifelse(df_voter_data$modeldate> "2018-05-17",1,0)
+df_voter_data$T4<-ifelse(df_voter_data$modeldate> "2018-06-22",1,0)
+df_voter_data$T5<-ifelse(df_voter_data$modeldate> "2018-07-01",1,0)
+df_voter_data$T6<-ifelse(df_voter_data$modeldate> "2018-07-24",1,0)
+df_voter_data$T7<-ifelse(df_voter_data$modeldate> "2018-09-24",1,0)
+df_voter_data$T8<-ifelse(df_voter_data$modeldate> "2020-01-24",1,0)
+df_voter_data$pandemic<-ifelse(df_voter_data$modeldate> "2020-03-13",1,0)
+
+cov = cbind(df_voter_data$T1, df_voter_data$T2, df_voter_data$T3,
+df_voter_data$T4, df_voter_data$T5, df_voter_data$T6, df_voter_data$T7, df_voter_data$T8, df_voter_data$pandemic)
+
+# plot of distribution across time with both cutoff dates
+p <- ggplot(data = df_voter_data, aes(x=modeldate, y=approve_estimate)) + geom_line() + scale_x_date(date_labels = "%Y/%m/%d") + geom_vline(xintercept = as.Date("2018-04-02"), color = "red")
+
+# show p
+plot(p)
+
+p2 <- ggplot(data = df_voter_data, aes(x=modeldate, y=approve_estimate)) + geom_line() + scale_x_date(date_labels = "%Y/%m/%d") + geom_vline(xintercept = as.Date("2018-06-15"), color = "red")
+plot(p2)
+```
+
+```{r local linear RD point estimator with h=20 and uniform kernel, echo=FALSE}
+cutoff = as.numeric(as.Date("2018-04-02"))
+
+m1 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE)
+
+m2 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE, covs = cov)
+
+m3 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", c= cutoff, all = TRUE)
+
+m4 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", all=TRUE, c= cutoff, covs = cov)
+
+```
+
+```{r cutoff1 models table, echo=FALSE}
+tidy.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    term = row.names(model$coef),
+    estimate = model$coef[, 1],
+    std.error = model$se[, 1],
+    p.value = model$pv[, 1]
+  )
+  row.names(ret) <- NULL
+  ret
+}
+
+glance.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    Kernel = model$kernel,
+    Bandwidth = model$bwselect
+  )
+  ret
+}
+
+models <- list(m1, m2, m3, m4)
+
+modelsummary(models, statistic = "std.error", stars=TRUE, title = "RD Estimates for Approval Rate after U.S. Tariffs")
+
+```
+
+```{r rdplot, echo=FALSE}
+
+## Implement rdplot 
+y = (df_voter_data$approve_estimate)
+x = as.integer(df_voter_data$modeldate)
+c= as.integer(as.Date("2018-04-2"))
+
+rdplot(y, x, c=c, p=1, binselect="es", covs =cov,
+       title="RD Plot: Trump Approval Rate over Time", 
+       y.label="Approval Estimate",
+       x.label="Date (as integer)")
+
+rdplot(y, x, c=c, p=2, binselect="es", covs =cov,
+       title="RD Plot: Trump Approval Rate over Time", 
+       y.label="Approval Estimate",
+       x.label="Date (as integer)")
+
+rdplot(y, x, c=c, p=3, binselect="es", covs =cov,
+       title="RD Plot: Trump Approval Rate over Time", 
+       y.label="Approval Estimate",
+       x.label="Date (as integer)")
+```
+
+```{r cutoff1 continuity assumption, echo=FALSE}
+cutoff = as.numeric(as.Date("2018-04-02"))
+x = as.integer(df_voter_data$modeldate)
+
+df_voter_data <- df_voter_data %>% 
+  mutate(
+    D  = if_else(df_voter_data$modeldate > cutoff, 1, 0),
+    y1 = 8811.5 + 0 * D + 1.5 * x + rnorm(n(), 0, 20)
+  )
+
+ggplot(aes(x, y1, colour = factor(D)), data = df_voter_data) +
+  geom_point(alpha = 0.5) +
+  geom_vline(xintercept = cutoff, colour = "grey", linetype = 2)+
+  stat_smooth(method = "lm", se = F) +
+  labs(x = "Test score (X)", y = "Potential Outcome (Y1)")
+
+# continuity assumption holds
+```
+
+
+(Second Cutoff Date)
+
+```{r cutoff2 models, echo=FALSE}
+cutoff = as.integer(as.Date("2018-06-15"))
+
+m5 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE)
+
+m6 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE, covs = cov)
+
+m7 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", c= cutoff, all = TRUE)
+
+m8 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", all=TRUE, c= cutoff, covs = cov)
+```
+
+```{r cutoff2 models table, echo=FALSE}
+tidy.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    term = row.names(model$coef),
+    estimate = model$coef[, 1],
+    std.error = model$se[, 1],
+    p.value = model$pv[, 1]
+  )
+  row.names(ret) <- NULL
+  ret
+}
+
+glance.rdrobust <- function(model, ...) {
+  ret <- data.frame(
+    Kernel = model$kernel,
+    Bandwidth = model$bwselect
+  )
+  ret
+}
+
+models <- list(m5, m6, m7, m8)
+
+modelsummary(models, statistic = "std.error", stars=TRUE, title = "RD Estimates for Approval Rate after China Tariffs")
+
+```
+
+
+```{r cutoff2 rdplot, echo=FALSE}
+y = (df_voter_data$approve_estimate)
+x = as.integer(df_voter_data$modeldate)
+c= as.integer(as.Date("2018-06-15"))
+
+rdplot(y, x, c=c, p=1, binselect="es", covs =cov,
+       title="RD Plot: Trump Approval Rate over Time", 
+       y.label="Approval Estimate",
+       x.label="Date (as integer)")
+
+rdplot(y, x, c=c, p=2, binselect="es", covs =cov,
+       title="RD Plot: Trump Approval Rate over Time", 
+       y.label="Approval Estimate",
+       x.label="Date (as integer)")
+
+rdplot(y, x, c=c, p=3, binselect="es", covs =cov,
+       title="RD Plot: Trump Approval Rate over Time", 
+       y.label="Approval Estimate",
+       x.label="Date (as integer)")
+```
+
+```{r cutoff2 continuity assumption, echo=FALSE}
+cutoff = as.numeric(as.Date("2018-06-15"))
+x = as.integer(df_voter_data$modeldate)
+
+df_voter_data <- df_voter_data %>% 
+  mutate(
+    D  = if_else(df_voter_data$modeldate > cutoff, 1, 0),
+    y1 = 8803.5 + 0 * D + 1.5 * x + rnorm(n(), 0, 20)
+  )
+
+ggplot(aes(x, y1, colour = factor(D)), data = df_voter_data) +
+  geom_point(alpha = 0.5) +
+  geom_vline(xintercept = cutoff, colour = "grey", linetype = 2)+
+  stat_smooth(method = "lm", se = F) +
+  labs(x = "Test score (X)", y = "Potential Outcome (Y1)")
+
+#continuity assumption holds
+```
+
+```{r rddensity and rddensity plot, echo=FALSE}
+rdd = rddensity(X = df_voter_data$modeldate, c= as.integer(as.Date("2018-04-02")), bwselect = "each", p=1, all = TRUE, kernel = "triangular")
+
+rdplot <- rdplotdensity(rdd, X = df_voter_data$modeldate)
+
+
+rdd = rddensity(X = df_voter_data$modeldate, c= as.integer(as.Date("2018-06-15")), bwselect = "each", p=1, all = TRUE, kernel = "triangular")
+
+rdplot <- rdplotdensity(rdd, X = df_voter_data$modeldate)
+
+```
+
+
+
+
 

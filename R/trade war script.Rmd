@@ -118,17 +118,17 @@ summary(bwd2)
 
 
 ```{r "local linear RD with MSE bandwidth", echo=FALSE}
-out4 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE)
+m1 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE)
 summary(out4)
 ```
 
 ```{r local linear RD with triangular kernel and exlcuded regularization term}
-out5 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", scaleregul = 0, p =1, bwselect = "mserd", c= cutoff, all = TRUE)
+m2 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", c= cutoff, all = TRUE)
 summary(out5)
 ```
 
 ```{r local linear RD with triangular kernel with all is TRUE}
-out6 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", all=TRUE, c= cutoff)
+m3 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =2, bwselect = "mserd", all=TRUE, c= cutoff)
 summary(out6)
 ```
 
@@ -162,7 +162,7 @@ y = (df_voter_data$approve_estimate)
 x = as.integer(df_voter_data$modeldate)
 c= as.integer(as.Date("2018-04-2"))
 
-out8 = rdrobust(y, x, c= c, covs = cov, kernel = "triangular", scaleregul = 1,p = 1, bwselect = "mserd")
+out8 = rdrobust(y, x, c= c, covs = cov, kernel = "triangular", scaleregul = 1,p = 1, bwselect = "mserd", all = TRUE)
 summary(out8)
 
 ```
@@ -187,7 +187,7 @@ glance.rdrobust <- function(model, ...) {
   ret
 }
 
-models <- list(out4, out5, out6)
+models <- list(m1, m2, m3)
 
 modelsummary(models, statistic = "std.error", stars=TRUE, title = "RD Estimates for Approval Rate after U.S. Tariffs")
 
