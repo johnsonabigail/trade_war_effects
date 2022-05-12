@@ -1,0 +1,6 @@
+the treatment effect is not smooth and constant throughout the postperiod (multiple stages), time-varying treatment effect in RDiT (marked by controls) 
+no lag effect
+the model is correctly specified, controls observed all other potential confounders
+
+
+
