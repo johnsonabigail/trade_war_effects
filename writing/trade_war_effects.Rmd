@@ -1,5 +1,5 @@
 ---
-title: "Causal Final Project"
+title: "The Trade War Effect on Donald Trump's Approval Rate"
 author: "Abby Johnson and Haokun Zhang"
 date: "5/13/2022"
 output: pdf_document
@@ -36,9 +36,28 @@ library(here)
 library(foreach)
 library(rddensity)
 library(dplyr)
+library(modelsummary)
 
 path <- here()
 ```
+
+# Introduction
+
+This paper's purpose is to use RD to determine the impact of Trade War on Donald Trump's approval rate during his presidency.
+
+# Background
+
+The trade war is arguably one of the most impactful actions that Donald Trump has made in his term of office. In 2018 he started a trade war with the world involving multiple battles with China as well as other American trade partners (EU, Canada, Mexico, etc.) Trump imposed tariffs and/or quotas on imports from the trade partners of the U.S. using a particular US legal rationale, such as "global safeguard" restrictions. Subsequent retaliation by trading partners and the further escalation between China and America has affected a list of items across industries, significantly risked trades, investment as well as the global economy. In Joseph R. Biden Jr.'s presidency the tariffs on steel and aluminum was lifted or eased but some imposed tariffs remain.
+
+Multiple paperwork provided evidence that the adverse economic effects of trade wars. Simulation of this possible China-US trade war estimated that the trade war would hurt manufacturing employment, and both export and import in the US, but would gain on welfare, GDP, and non-manufacturing production (Chunding Li, 2018). After Trump's announcement the first tariff and the following retaliations from targeted countries, economists estimated a welfare cost of around \$6.9 billion during only the first 11 months of 2018, the U.S. tariffs were almost passed through into U.S. domestic prices, trade war created an additional cost of \$12.3 billion to the consumers (Mary Amiti, 2019). Minghao Li (2020) estimated that among the most significant trade events in the recent history, the overall welfare impacts of trade war were modest, ranged from -0.2% to -0.4% for the United States, sectoral revenue and the pattern of international trade are largely affected.
+
+Retaliations from the US's trade partners have political impacts as well, they have not only disproportionately targeted more Republican areas, but they were also carefully targeted to hurt Trump. A relevant industry's concentration in Republican-leaning districts is systematically associated with higher probability of being targeted in early rounds of retaliation. Strong evidence shows that for every percentage point increase in the share of workers exposed to China's retaliatory tariffs, the Republican share of the vote decreased by 0.12 to 0.47 percentage points compared to the previous election, depending on the time of exposure (Sung Eun Kim, 2021). A similar negative association was found between local exposure of the economic consequences of the trade war and the decline in support and a loss of seats for Republican candidates in the 2018 House elections. (Emily J. Blanchard, 2019). Empirical evidence from individual-level data and county-level data shows that counties that are more exposed to retaliatory tariff had higher levels of support for Trump in the 2016 presidential election: the counties most exposed to EU retaliation saw an average swing in the Republican candidates' vote share of 22% verses counties not exposed to EU retaliation (Thiemo Fetzer, 2020). Individuals living in the counties under the highest EU retaliation exposure would be characterized by a 31.5% higher propensity to express a favorable view of Trump as a candidate, and for China's retaliation, the propensity is 11.6% (Thiemo Fetzer, 2020). Targeting of Republican counties in swing districts appears to be concentrated in the first two rounds of retaliation. While a ten-percentage-point increase in the two-party vote share of the Republican party is associated with a 0.12 percentage point increase in the share of the targeted workforce in non-swing districts, the targeted share of the workforce is higher by 0.5 points in swing districts (Sung Eun Kim, 2021). The retaliatory tariffs appear to have a clear political purpose: damage Donald Trump's support rates in the red states and swing states.
+
+# Data
+
+To examine trade war and its electoral consequences, we developed a regression discontinuity in time model. Combining with approval ratings of Donald Trump during his term of office, we measure the percentage change of Donald Trump's estimated job approval rates from registered or likely voter polls.
+
+Historically, the president's approval ratings have been one of the best indicators of how his party will fare in congressional elections (Silver, 2017). Therefore, we use a dataset that was made by FiveThirtyEight, and published to Kaggle (Mukherjee, n.d.; Silver, 2017). It contains a trendline of Donald Trump's low, high, and estimated job approval ratings across January 23rd, 2017, to September 15th, 2020, as well as his low, high, and estimated job disapproval rating across the same period. All the polls collected are considered real, scientific surveys, they are weighed based on their methodological standards, historical accuracy, sample size and how often a pollster measures Trump's approval ratings, as well as a series of rigorous adjustments. The approval ratings polls included only registered or likely voter polls. For this study, we use Donald Trump's estimated approval rate from January 23rd, 2017 to September 15th, 2020 as the key value.
 
 ```{r data_descripton, echo = FALSE}
 #import data
@@ -86,12 +105,13 @@ p <- ggplot(data = df_voter_data, aes(x=modeldate, y=approve_estimate)) + geom_l
 
 # show p
 plot(p)
-
-p2 <- ggplot(data = df_voter_data, aes(x=modeldate, y=approve_estimate)) + geom_line() + scale_x_date(date_labels = "%Y/%m/%d") + geom_vline(xintercept = as.Date("2018-06-15"), color = "red")
-plot(p2)
 ```
 
-```{r local linear RD point estimator with h=20 and uniform kernel, echo=FALSE}
+# Research Design
+
+# Discussion of Results
+
+```{r "local_linear_RD_point_estimator_with h=20_and_uniform_kernel", echo=FALSE}
 cutoff = as.numeric(as.Date("2018-04-02"))
 
 m1 = rdrobust(df_voter_data$approve_estimate, df_voter_data$modeldate, kernel = "triangular", p =1, bwselect = "mserd", c= cutoff, all=TRUE)
@@ -141,7 +161,9 @@ rdplot(y, x, c=c, p=1, binselect="es", covs =cov,
        title="RD Plot: Trump Approval Rate over Time", 
        y.label="Approval Estimate",
        x.label="Date (as integer)")
+```
 
+```{r two_plot, echo= FALSE}
 rdplot(y, x, c=c, p=2, binselect="es", covs =cov,
        title="RD Plot: Trump Approval Rate over Time", 
        y.label="Approval Estimate",
@@ -172,8 +194,10 @@ ggplot(aes(x, y1, colour = factor(D)), data = df_voter_data) +
 # continuity assumption holds
 ```
 
-
-(Second Cutoff Date)
+```{r data_descripton_2, echo = FALSE}
+p2 <- ggplot(data = df_voter_data, aes(x=modeldate, y=approve_estimate)) + geom_line() + scale_x_date(date_labels = "%Y/%m/%d") + geom_vline(xintercept = as.Date("2018-06-15"), color = "red")
+plot(p2)
+```
 
 ```{r cutoff2 models, echo=FALSE}
 cutoff = as.integer(as.Date("2018-06-15"))
@@ -212,7 +236,6 @@ models <- list(m5, m6, m7, m8)
 modelsummary(models, statistic = "std.error", stars=TRUE, title = "RD Estimates for Approval Rate after China Tariffs")
 
 ```
-
 
 ```{r cutoff2 rdplot, echo=FALSE}
 y = (df_voter_data$approve_estimate)
@@ -266,7 +289,4 @@ rdplot <- rdplotdensity(rdd, X = df_voter_data$modeldate)
 
 ```
 
-
-
-
-
+# Conclusion
