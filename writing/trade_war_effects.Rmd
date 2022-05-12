@@ -108,6 +108,83 @@ p <- ggplot(data = df_voter_data, aes(x=modeldate, y=approve_estimate)) + geom_l
 plot(p)
 ```
 
+```{r summary_table, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+
+# import the data
+voter_data = trump_vote %>%
+  filter(subgroup == "Voters")
+voter_data = voter_data %>%
+  select(
+    subgroup,
+    modeldate,
+    approve_estimate,
+    approve_hi,
+    approve_lo,
+    disapprove_estimate,
+    disapprove_hi,
+    disapprove_lo
+  )
+
+# assign name
+namies = c(
+  "high approval",
+  "low approval",
+  "estimated approval",
+  "high disapproval",
+  "low disapproval",
+  "estimated disapproval"
+)
+
+# standard deviation
+sum_tab_sd = voter_data %>%
+  select(
+    approve_hi,
+    approve_lo,
+    approve_estimate,
+    disapprove_hi,
+    disapprove_lo,
+    disapprove_estimate
+  ) %>%
+  summarise_all(sd, na.rm = TRUE) %>%
+  round(2) %>%
+  t()
+
+# mean
+sum_tab_mean = voter_data %>%
+  select(
+    approve_hi,
+    approve_lo,
+    approve_estimate,
+    disapprove_hi,
+    disapprove_lo,
+    disapprove_estimate
+  ) %>%
+  summarise_all(mean, na.rm = TRUE) %>%
+  round(2) %>%
+  t() %>%
+  cbind(sum_tab_sd)
+
+# total number
+sum_tab_sum = voter_data %>%
+  select(
+    approve_hi,
+    approve_lo,
+    approve_estimate,
+    disapprove_hi,
+    disapprove_lo,
+    disapprove_estimate
+  ) %>%
+  summarise_all(sum, na.rm = TRUE) %>%
+  round(2) %>%
+  t() %>%
+  cbind(sum_tab_mean)
+row.names(sum_tab_sum) = namies
+kable(sum_tab_sum,
+      col.names = c("N", "Mean", "Sd"),
+      caption = "Approval rate")
+
+```
+
 # Research Design
 
 While evaluating a question of how a policy would change the approval rate of one party, there is no cross-sectional variation in treatment-only one party is observed at a given time, so no difference-in-differences is possible. However, it is possible to estimate the impact under a regression discontinuity (RD) context. In this study, we used regression discontinuity in time (RDiT) to measure the trade war's average effect on Donald Trump's approval rate. Different from cross-sectional RD, the running variable is time itself in the RDiT framework, and time cannot be thought of as randomly assigned within a neighborhood around a threshold like RD framework assigning randomized experiment [@2018RDiT]. In our model, the date of retaliatory tariffs went into effect \$c\$ is the cutoff point. For all dates \$t>c\$, Trump's job approval rate is affected, and for all dates \$t\<c\$, it is not. China imposed its first retaliatory tariff on US products in April, 2, 2018 and in July, 6, 2018, the first part of its updated retaliation list targeting roughly \$34 billion out of \$50 billion of US exports, including a lot of agricultural and food products went into effect [@Timeline]. These two tariffs have heavy impact on the US trade and domestic consumers. Since we know the date of tariff going into effect precisely well, by assuming that the treatment effect is smooth and constant throughout the postperiod, which means the rate of tariffs are constant and they do not jump or fall across time, this allows the RDiT to perform well.
