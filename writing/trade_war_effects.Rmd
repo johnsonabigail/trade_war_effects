@@ -44,7 +44,7 @@ path <- here()
 
 # Introduction
 
-This paper explores the impact of the 2018 U.S. Trade War with China on the overall approval ratings of Donald Trump during his presidency. Specifically, this paper aims to use regression discontinuity in time (RDiT) analysis to determine the impact of the trade war on Trump's presidential ratings. By comparing the approval trends before and after trade policy changes, we can evaluate the impact of trade policies on presidential approval. 
+This paper explores the impact of the 2018 U.S. Trade War with China on the overall approval ratings of Donald Trump during his presidency. Specifically, this paper aims to use regression discontinuity in time (RDiT) analysis to determine the impact of the trade war on Trump's presidential ratings. By comparing the approval trends before and after trade policy changes, we can evaluate the impact of trade policies on presidential approval.
 
 RDiT analysis allows us to control for external effects across time, in order to isolate the estimated treatment effect of a given policy. Unlike the standard RD framework, RDiT requires more controls to control for unobservables correlated with the running that may have discontinuous impacts on the potential outcome.
 
@@ -63,7 +63,6 @@ Retaliations from the US's trade partners have political impacts as well, they h
 # Data
 
 To examine trade war and its electoral consequences, we developed a regression discontinuity in time model. Combining with approval ratings of Donald Trump during his term of office, we measure the percentage change of Donald Trump's estimated job approval rates from registered or likely voter polls.
-
 
 ```{r data_descripton, include = FALSE}
 #import data
@@ -198,12 +197,11 @@ plot(p)
 
 # Research Design
 
-While evaluating a question of how a policy would change the approval rate of one party, there is no cross-sectional variation in treatment-only one party is observed at a given time, so no difference-in-differences is possible. However, it is possible to estimate the impact under a regression discontinuity (RD) context. In this study, we used regression discontinuity in time (RDiT) to measure the trade war's average effect on Donald Trump's approval rate. Different from cross-sectional RD, the running variable is time itself in the RDiT framework, and time cannot be thought of as randomly assigned within a neighborhood around a threshold like RD framework assigning randomized experiment [@2018RDiT]. In our model, the date of retaliatory tariffs went into effect \$c\$ is the cutoff point. For all dates \$t>c\$, Trump's job approval rate is affected, and for all dates \$t\<c\$, it is not. China imposed its first retaliatory tariff on US products in April, 2, 2018 and in July, 6, 2018, the first part of its updated retaliation list targeting roughly \$34 billion out of \$50 billion of US exports, including a lot of agricultural and food products went into effect [@Timeline]. These two tariffs have heavy impact on the US trade and domestic consumers. Since we know the date of tariff going into effect precisely well, by assuming that the treatment effect is smooth and constant throughout the postperiod, which means the rate of tariffs are constant and they do not jump or fall across time, this allows the RDiT to perform well.
+While evaluating a question of how a policy would change the approval rate of one party, there is no cross-sectional variation in treatment-only one party is observed at a given time, so no difference-in-differences is possible. However, it is possible to estimate the impact under a regression discontinuity (RD) context. In this study, we used regression discontinuity in time (RDiT) to measure the trade war's average effect on Donald Trump's approval rate. Different from cross-sectional RD, the running variable is time itself in the RDiT framework, and time cannot be thought of as randomly assigned within a neighborhood around a threshold like RD framework assigning randomized experiment [@2018RDiT]. In our model, the date of retaliatory tariffs went into effect $c$ is the cutoff point. For all dates $t>c$, Trump's job approval rate is affected, and for all dates $t<c$, it is not. China imposed its first retaliatory tariff on US agricultural products in April, 2, 2018 and in July, 6, 2018, the first part of its updated retaliation list targeting roughly \$34 billion out of \$50 billion of US exports, including a lot of agricultural and food, as well as industrial products went into effect [@Timeline]. These two tariffs have heavy impact on the US trade and domestic consumers. Since we know the date of tariff going into effect precisely well, by assuming that the treatment effect is smooth and constant throughout the postperiod, which means the rate of tariffs are constant and they do not jump or fall across time, this allows the RDiT to perform well.
 
 \newpage
 
 During Trump's presidency, other potential confounders have effects on his approval rate as well, they are correlated with the running variable and may have discontinuous impacts on the potential outcome. We specify control variables such as major tariffs imposed between US and its trade partners from 2018 to 2020, as well as Donald Trump's subsidies for American farmers after export fallout in July 24, 2018. In March 13, 2020, the first case of COVID-19 in US was announced, we include this event as control as well. These controls are dummy variables that equal to 0 before and equal to 1 in and after their dates. We assume that the controls observed all other potential confounders, and these confounders change smoothly across the date of their implementations.
-
 
 | Events                                                 | Date               |
 |--------------------------------------------------------|--------------------|
@@ -229,14 +227,16 @@ Where:
 
 $\beta = lim_{t \to t_{start}}E[y_i \mid t=t_{start}]-lim_{t \leftarrow t_{start}}E[y_i \mid t=t_{start}]$
 
-The first variable, $a = \beta_0 - \beta_p\{t \ge t_{start}\}^p$ shifts the intercept up and down. $\beta_p$ whcih captures the effect of trade war, has the same interpretation, except for the intercept. It comes with $p^{th}$ order polynomial. In this study we present models with linear and second order polynomial. $C_{0-9}$ represents the control variables, $B_{0-9}$ are their coefficients. And $\eta_{i,t}$ is the error term.
+The first variable, $a = \beta_0 - \beta_p\{t \ge t_{start}\}^p$ shifts the intercept up and down. $\beta_p$ whcih captures the effect of trade war, has the same interpretation, except for the intercept. It comes with $p^{th}$ order polynomial. In this study we present models with linear and second order polynomial. $C_{0-9}$ represents the control variables, $B_{0-9}$ are their coefficients. And $\eta_{i,t}$ is the error term. The data is in log form in order to normalize the distribution.
 
 \newpage
 
 # Results
+
 Before running our models, we conduct McCrary density tests for each of our tested cutoff dates. The McCrary density tests help us check the density of the running variable as a falsification test. For our data, time functions as our running variable. If the density, or number of observations, below the cutoff is considerably different from the one above it would indicate manipulation around the treatment cutoff date.
 
 Shown below, we see the density test statistics for the April 2, 2018 tariff. We find that the total number of observations before the cutoff and the total number of observations after to be significantly different. However, when we look at the effected number of observations within the selected bandwidth, we find almost the same number of observations before and after the cutoff. This provides little evidence of manipulation around the cutoff date.
+
 ```{r rddensity and rddensity plot, include=FALSE, out.width = "60%"}
 rdd1 = rddensity(X = as.integer(df_voter_data$modeldate), c= as.integer(as.Date("2018-04-02")), h=37.6, p=2, all = TRUE, kernel = "triangular", q=3)
 
@@ -261,7 +261,8 @@ rdd1 = rddensity(X = as.integer(df_voter_data$modeldate), c= as.integer(as.Date(
 
 : RD Manipulation Test using local polynomial density estimation
 
-Similarly, we see the density test statistics for the July 6, 2018 tariffs below. Once again, the total number of observations before and after the cutoff date are noticeably different. However, the number of effected observations within the selected bandwidth is almost the same amount before and after the cutoff. Therefore, the July 6, 2018 treatment also has little evidence of manipulation around the cutoff date. 
+Similarly, we see the density test statistics for the July 6, 2018 tariffs below. Once again, the total number of observations before and after the cutoff date are noticeably different. However, the number of effected observations within the selected bandwidth is almost the same amount before and after the cutoff. Therefore, the July 6, 2018 treatment also has little evidence of manipulation around the cutoff date.
+
 ```{r, out.width = "60%", include=FALSE}
 rdd2 = rddensity(X = as.integer(df_voter_data$modeldate), c= as.integer(as.Date("2018-07-06")), h = 37.4, p=2, all = TRUE, kernel = "triangular")
 
@@ -269,7 +270,6 @@ rdd2 = rddensity(X = as.integer(df_voter_data$modeldate), c= as.integer(as.Date(
 #rdplot <- rdplotdensity(rdd2, X = df_voter_data$modeldate) 
 
 ```
-
 
 | Number of obs =    | 1332         |            |
 |--------------------|--------------|------------|
@@ -287,12 +287,12 @@ rdd2 = rddensity(X = as.integer(df_voter_data$modeldate), c= as.integer(as.Date(
 
 : RD Manipulation Test using local polynomial density estimation
 
-
 \newpage
 
-After assessing the RD manipulation test, we first run RDiT analysis for the April 2, 2018 agricultural tariffs. Table 5 shows the estimates for both the linear and second order polynomial RDiT estimates. Model 1 and Model 2 are linear estimates, with Model 2 including the controls. Meanwhile, Model 3 and Model 4 are second order polynomial estimates, with Model 4 including controls. We can see that only Models 1, 2, and 3 have significant robust estimates of the RD coefficient. Moreover, all models estimate a negative treatment effect in response to the agricultural tariff. Looking at Model 4, we estimate that the April 2, 2018 tariff decreased Trump's approval rating by about 30%. 
+After assessing the RD manipulation test, we first run RDiT analysis for the April 2, 2018 agricultural tariffs. Table 5 shows the estimates for both the linear and second order polynomial RDiT estimates. Model 1 and Model 2 are linear estimates, with Model 2 including the controls. Meanwhile, Model 3 and Model 4 are second order polynomial estimates, with Model 4 including controls. We can see that only Models 1, 2, and 3 have significant robust estimates of the RD coefficient. Moreover, all models estimate a negative treatment effect in response to the agricultural tariff. Looking at Model 4, we estimate that the April 2, 2018 tariff decreased Trump's approval rating by about 30%.
 
-A decrease in approval ratings is a logical voter response to an increase in tariffs. Higher tariffs means that foreign imports are more expensive, and domestic exporters have a harder time selling goods abroad. These increased costs associated with tariffs are likely to cause a negative reaction to the general voter population, so it makes economic sense that we see a 30% drop in Trump's approval rating. 
+A decrease in approval ratings is a logical voter response to an increase in tariffs. Higher tariffs means that foreign imports are more expensive, and domestic exporters have a harder time selling goods abroad. These increased costs associated with tariffs are likely to cause a negative reaction to the general voter population, so it makes economic sense that we see a 30% drop in Trump's approval rating.
+
 ```{r "local_linear_RD_point_estimator_with h=20_and_uniform_kernel", include=FALSE}
 cutoff = as.numeric(as.Date("2018-04-02"))
 
@@ -349,7 +349,9 @@ rdplot(y, x, c=c, p=3, binselect="es", covs =cov,
        y.label="Approval Estimate",
        x.label="Date (as integer)")
 ```
-We can visualize this estimated decrease in approval ratings from Figure 2. We can clearly see a declining trend after the tariff cutoff date. Additionally, we can see that the second order polynomial model fits the RDiT trend of the data well. 
+
+We can visualize this estimated decrease in approval ratings from Figure 2. We can clearly see a declining trend after the tariff cutoff date. Additionally, we can see that the second order polynomial model fits the RDiT trend of the data well.
+
 ```{r two_plot, echo= FALSE, out.width = "60%", message=FALSE,fig.cap = "Polynomial RDiT Plot: April 2, 2018 Tariff", fig.align='center'}
 rdplot(y, x, c=c, p=2, binselect="es", covs =cov,
        y.label="Approval Estimate",
@@ -358,7 +360,8 @@ rdplot(y, x, c=c, p=2, binselect="es", covs =cov,
 
 \newpage
 
-Moreover, Figure 3 shows the potential outcomes of approval ratings after April 2, 2018, assuming the agricultural tariff had not been imposed. Figure 3 shows that without the tariff, the approval ratings would follow a linear and upward trend. Therefore, we verify that the continuity assumption holds, so the treatment effect is isolated to the causal implications of the agricultural tariff. 
+Moreover, Figure 3 shows the potential outcomes of approval ratings after April 2, 2018, assuming the agricultural tariff had not been imposed. Figure 3 shows that without the tariff, the approval ratings would follow a linear and upward trend. Therefore, we verify that the continuity assumption holds, so the treatment effect is isolated to the causal implications of the agricultural tariff.
+
 ```{r cutoff1 continuity assumption, include=FALSE, message=FALSE}
 cutoff = as.numeric(as.Date("2018-04-02"))
 x = as.integer(df_voter_data$modeldate)
@@ -382,7 +385,7 @@ ggplot(aes(x, y1, colour = factor(D)), data = df_voter_data) +
 
 Second, we run RDiT analysis for the July 6, 2018 tariffs. Table 6 shows the estimates for both the linear and second order polynomial RDiT estimates. Model 5 and Model 6 are linear estimates, with Model 6 including control variables. Meanwhile, Model 7 and Model 8 are second order polynomial estimates, with Model 8 including controls. We can see that only Models 2 and 4 have significant robust estimates of the RD coefficient. However, all models estimate a positive treatment effect in response to the July tariffs. Looking at Model 8, we estimate that the July 6, 2018 tariff increased Trump's approval rating by about 51%.
 
-An increase in approval following an increase in tariffs, is unexpected. However, when we consider that Trump is widely supported by U.S. agricultural companies, this response makes more sense. By increasing tariffs and prolonging the trade war with China, domestic U.S. agricultural companies are able to sell their goods at a higher price within the U.S. economy, because the no longer have fair price competition with their foreign competitors. Therefore, we expect the agricultural industry to have a positive reaction to an prolonged trade war and to have an increased approval of Trump's trade policies. 
+An increase in approval following an increase in tariffs, is unexpected. However, when we consider that Trump is widely supported by U.S. agricultural companies, this response makes more sense. By increasing tariffs and prolonging the trade war with China, domestic U.S. agricultural companies are able to sell their goods at a higher price within the U.S. economy, because the no longer have fair price competition with their foreign competitors. Therefore, we expect the agricultural industry to have a positive reaction to an prolonged trade war and to have an increased approval of Trump's trade policies. In July 24, 2018, Trump subsidized American farmers, which could be another potential reason of the raise of his approval rate.
 
 ```{r cutoff2 models, include=FALSE}
 cutoff = as.integer(as.Date("2018-07-06"))
@@ -440,14 +443,14 @@ rdplot(y, x, c=c, p=3, binselect="es", covs =cov,
        x.label="Date (as integer)")
 ```
 
-We can visualize the estimated treatment effect on approval ratings from Figure 4. While the second order polynomial model does seem to fit the trend of the pre-treatment and post-treatment data, there does not appear to be a clear positive effect in approval ratings that our coefficient estimates predict. This likely could be do to our lack of lag effects in our models and our limited access to control variables. 
+We can visualize the estimated treatment effect on approval ratings from Figure 4. While the second order polynomial model does seem to fit the trend of the pre-treatment and post-treatment data, there does not appear to be a clear positive effect in approval ratings that our coefficient estimates predict. This likely could be do to our lack of lag effects in our models and our limited access to control variables.
+
 ```{r, echo=FALSE, fig.align='center', out.width = "60%", fig.cap ="Polynomial RDiT Plot: July 6, 2018 Tariff", message=FALSE}
 rdplot(y, x, c=c, p=2, binselect="es", covs =cov,
        title="RD Plot: Trump Approval Rate over Time", 
        y.label="Approval Estimate",
        x.label="Date (as integer)")
 ```
-
 
 ```{r cutoff2 continuity assumption, include=FALSE, message=FALSE}
 cutoff = as.numeric(as.Date("2018-07-06"))
@@ -459,7 +462,9 @@ df_voter_data <- df_voter_data %>%
     y1 = 8859 + 0 * D + 1.5 * x + rnorm(n(), 0, 20)
   )
 ```
-However, Figure 5 shows the potential outcomes of approval ratings after July 6, 2018, assuming the tariffs had not been imposed, and verifies that the continuity assumption holds for this treatment. So, in theory, the estimated effect is isolated to the causal implications of the July 6, 2018 tariff. 
+
+However, Figure 5 shows the potential outcomes of approval ratings after July 6, 2018, assuming the tariffs had not been imposed, and verifies that the continuity assumption holds for this treatment. So, in theory, the estimated effect is isolated to the causal implications of the July 6, 2018 tariff.
+
 ```{r, echo=FALSE, fig.align='center', out.width = "60%",fig.cap="Continuity Assumption for April 2, 2018 Tariff", message=FALSE}
 ggplot(aes(x, y1, colour = factor(D)), data = df_voter_data) +
   geom_point(alpha = 0.5) +
@@ -472,10 +477,11 @@ ggplot(aes(x, y1, colour = factor(D)), data = df_voter_data) +
 \newpage
 
 # Conclusion
-In order to estimate the impact of the 2018 U.S. Trade War with China on President Trump's approval ratings, we employed regression discontinuity in time analysis. We explore the treatment effect of two different tariffs at two different times during Trump's presidency. After comparing linear and polynomial models, both with and without controls, we found the polynomial models with controls to provide the most significant estimates. While our RDiT estimates were significant, the results were also unexpected. The first tariff was estimated to decrease Trump's approval ratings, while the second tariff was estimated to increase Trump's approval ratings. 
 
-These differing and unexpected results could be due to a few different factors. First, Trump's supporting industries consist mainly of large agricultural producers. Therefore, protectionist policy against agricultural imports could lead to an increase in approval from his farming constituency. Meanwhile, his non-farming constituency likely disapproves protectionist policy due to increased domestic costs of agricultural goods. So, it makes sense that we may see both positive and negative reactions to tariffs. Secondly, however, the approval ratings data set used for this analysis does not include many features that control for uncorrelated events in time. So, we manually created binary controls to indicate when other large tariffs and policies were implemented. Therefore, our model lacks robust controls for our RDiT analysis. Lastly, we lack a viable lag variable in our data set, so we can not control for lagged responses to treatment effects in our models. All three of these factors likely contribute to the varying and unexpected results from the RDiT analysis. 
+In order to estimate the impact of the 2018 U.S. Trade War with China on President Trump's approval ratings, we employed regression discontinuity in time analysis. We explore the treatment effect of two different tariffs at two different times during Trump's presidency. After comparing linear and polynomial models, both with and without controls, we found the polynomial models with controls to provide the most significant estimates. While our RDiT estimates were significant, the results were also unexpected. The first tariff was estimated to decrease Trump's approval ratings, while the second tariff was estimated to increase Trump's approval ratings.
 
-For better performing models in future studies, we suggest finding data with viable controls for both changes in the external environment over time and lagged responses to treatment effects. With these features, future studies are likely to find more accurate and robust results from their RDiT analysis. 
+These differing and unexpected results could be due to a few different factors. First, Trump's supporting industries consist mainly of large agricultural producers. Therefore, protectionist policy against agricultural imports could lead to an increase in approval from his farming constituency. Meanwhile, his non-farming constituency likely disapproves protectionist policy due to increased domestic costs of agricultural goods. So, it makes sense that we may see both positive and negative reactions to tariffs. Secondly, however, the approval ratings data set used for this analysis does not include many features that control for uncorrelated events in time. So, we manually created binary controls to indicate when other large tariffs and policies were implemented. Therefore, our model lacks robust controls for our RDiT analysis. Lastly, we lack a viable lag variable in our data set, so we can not control for lagged responses to treatment effects in our models. All three of these factors likely contribute to the varying and unexpected results from the RDiT analysis.
+
+For better performing models in future studies, we suggest finding data with viable controls for both changes in the external environment over time and lagged responses to treatment effects. With these features, future studies are likely to find more accurate and robust results from their RDiT analysis.
 
 # Reference
